@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pmlib"
+version = "1.0.0"
+authors = [
+    { name="Michael Dzjaparidze" },
+]
+description = "A physical modelling library for building resonator networks"
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy~=1.26.0",
+    "scipy~=1.11.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/michaeldzjap/py-pmlib"
+Issues = "https://github.com/michaeldzjap/py-pmlib/issues"
+
+[tool.hatch.envs.lint]
+detached = true
+dependencies = [
+    "flake8>=6.1.0",
+    "mypy>=1.7.1",
+    "pylint>=3.0.2",
+]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "coverage[toml]",
+    "pytest",
+    "pytest-cov",
+]
