@@ -1,26 +1,27 @@
 """Sparse difference matrix utilities."""
 
-from numpy import array, ones, prod, zeros
-from scipy.sparse import dia_matrix, spmatrix
+from numpy import prod
+from scipy.sparse import diags, spmatrix
 
 
-def second_difference_matrix(n: int = 3) -> spmatrix:
+def second_difference_matrix(n: int = 2) -> spmatrix:
     """
     Generate the second order difference operator in matrix form.
 
     Parameters
     ----------
-    n : int, default 3
-        The number of rows and columns of the matrix (default 3).
+    n : int, default 2
+        The number of rows and columns of the matrix.
 
     Returns
     -------
     spmatrix
         The second difference matrix.
     """
-    data = array([-2 + zeros(n), ones(n)])
+    if n < 2:
+        raise ValueError('n must be equal or greater than 2')
 
-    return dia_matrix((array([data[0], data[1], data[1]]), array([0, 1, -1])), shape=(n, n))
+    return diags((1, -2, 1), (-1, 0, 1), (n, n))
 
 
 def fourth_difference_matrix(n: int = 3) -> spmatrix:
@@ -30,53 +31,50 @@ def fourth_difference_matrix(n: int = 3) -> spmatrix:
     Parameters
     ----------
     n : int, default 3
-        The number of rows and columns of the matrix (default 3).
+        The number of rows and columns of the matrix.
 
     Returns
     -------
     spmatrix
         The fourth difference matrix.
     """
-    data = array([6 + zeros(n), -4 + zeros(n), ones(n)])
+    if n < 3:
+        raise ValueError('n must be equal or greater than 3')
 
-    return dia_matrix(
-        (array([data[0], data[1], data[1], data[2], data[2]]), array([0, 1, -1, 2, -2])),
-        shape=(n, n),
-    )
+    return diags((1, -4, 6, -4, 1), (-2, -1, 0, 1, 2), (n, n))
 
 
-def laplacian_matrix(n: tuple[int, int] = (3, 3)) -> spmatrix:
+def laplacian_matrix(n: tuple[int, int] = (2, 2)) -> spmatrix:
     """
     Generate the discrete laplacian operator in matrix form.
 
     Parameters
     ----------
-    n : tuple, default (3, 3)
-        The number of rows and columns of the matrix (default 3).
+    n : tuple, default (2, 2)
+        A tuple whose product defines the number of rows and columns of the matrix.
 
     Returns
     -------
     spmatrix
         The laplacian matrix.
     """
+    for i, ni in enumerate(n):
+        if ni < 2:
+            raise ValueError(f'n[{i}] must be equal or greater than 2')
+
     m = prod(n)
-    m *= m
-    data = array([-4 + zeros(m), ones(m)])
 
-    return dia_matrix(
-        (array([data[0], data[1], data[1], data[1], data[1]]), array([0, 1, -1, n[1], -n[1]])),
-        shape=(m, m),
-    )
+    return diags((1, 1, -4, 1, 1), (-n[1], -1, 0, 1, n[1]), (m, m))
 
 
-def biharmonic_matrix(n: tuple[int, int] = (3, 3)) -> spmatrix:
+def biharmonic_matrix(n: tuple[int, int] = (4, 4)) -> spmatrix:
     """
     Generate the discrete biharmonic operator in matrix form.
 
     Parameters
     ----------
-    n : tuple, default (3, 3)
-        The number of rows and columns of the matrix (default 3).
+    n : tuple, default (4, 4)
+        A tuple whose product defines the number of rows and columns of the matrix.
 
     Returns
     -------
@@ -84,21 +82,15 @@ def biharmonic_matrix(n: tuple[int, int] = (3, 3)) -> spmatrix:
         The biharmonic matrix.
     """
     m = prod(n)
-    m *= m
-    data = array([20 + zeros(m), -8 + zeros(m), ones(m), 2 + zeros(m)])
 
-    return dia_matrix(
+    return diags(
+        (1, 2, -8, 2, 1, -8, 20, -8, 1, 2, -8, 2, 1),
         (
-            array([
-                data[0], data[1], data[1], data[2], data[2], data[1], data[1],
-                data[3], data[3], data[3], data[3], data[2], data[2],
-            ]),
-            array([
-                0, 1, -1, 2, -2, n[1], -n[1], n[1] - 1, n[1] + 1, -n[1] + 1,
-                -n[1] - 1, 2 * n[1], 2 * -n[1],
-            ]),
+            2 * -n[1], -n[1] - 1, -n[1], -n[1] + 1,
+            -2, -1, 0, 1, 2,
+            n[1] - 1, n[1], n[1] + 1, 2 * n[1],
         ),
-        shape=(m, m),
+        (m, m),
     )
 
 
