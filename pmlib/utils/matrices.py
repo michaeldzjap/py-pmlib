@@ -1,7 +1,7 @@
 """Sparse difference matrix utilities."""
 
 from numpy import array, ones, prod, zeros
-from scipy.sparse import dia_matrix, spmatrix  # type: ignore
+from scipy.sparse import dia_matrix, spmatrix
 
 
 def second_difference_matrix(n: int = 3) -> spmatrix:
@@ -18,7 +18,7 @@ def second_difference_matrix(n: int = 3) -> spmatrix:
     spmatrix
         The second difference matrix.
     """
-    data = array([-2. + zeros(n), ones(n)])
+    data = array([-2 + zeros(n), ones(n)])
 
     return dia_matrix((array([data[0], data[1], data[1]]), array([0, 1, -1])), shape=(n, n))
 

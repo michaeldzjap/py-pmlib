@@ -25,6 +25,9 @@ dependencies = [
 Homepage = "https://github.com/michaeldzjap/py-pmlib"
 Issues = "https://github.com/michaeldzjap/py-pmlib/issues"
 
+[tool.hatch.envs.default]
+path = ".hatch"
+
 [tool.hatch.envs.lint]
 detached = true
 dependencies = [
@@ -39,3 +42,12 @@ dependencies = [
     "pytest",
     "pytest-cov",
 ]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[[tool.mypy.overrides]]
+module = "scipy.sparse"
+ignore_missing_imports = true

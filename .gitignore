@@ -1,3 +1,5 @@
 __pycache__
+/.hatch
 /.venv
 /.mypy_cache
+/.pytest_cache
