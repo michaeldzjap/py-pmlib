@@ -20,7 +20,7 @@ def second_difference_matrix(n: int = 3) -> spmatrix:
     """
     data = array([-2. + zeros(n), ones(n)])
 
-    return dia_matrix(((data[0], data[1], data[1]), array([0, 1, -1])), shape=(n, n))
+    return dia_matrix((array([data[0], data[1], data[1]]), array([0, 1, -1])), shape=(n, n))
 
 
 def fourth_difference_matrix(n: int = 3) -> spmatrix:
@@ -40,7 +40,7 @@ def fourth_difference_matrix(n: int = 3) -> spmatrix:
     data = array([6 + zeros(n), -4 + zeros(n), ones(n)])
 
     return dia_matrix(
-        ((data[0], data[1], data[1], data[2], data[2]), array([0, 1, -1, 2, -2])),
+        (array([data[0], data[1], data[1], data[2], data[2]]), array([0, 1, -1, 2, -2])),
         shape=(n, n),
     )
 
@@ -64,7 +64,7 @@ def laplacian_matrix(n: tuple[int, int] = (3, 3)) -> spmatrix:
     data = array([-4 + zeros(m), ones(m)])
 
     return dia_matrix(
-        ((data[0], data[1], data[1], data[1], data[1]), array([0, 1, -1, n[1], -n[1]])),
+        (array([data[0], data[1], data[1], data[1], data[1]]), array([0, 1, -1, n[1], -n[1]])),
         shape=(m, m),
     )
 
@@ -89,17 +89,22 @@ def biharmonic_matrix(n: tuple[int, int] = (3, 3)) -> spmatrix:
 
     return dia_matrix(
         (
-            (
-                data[0], data[1], data[1], data[2], data[2], data[0], data[0],
-                data[3], data[3], data[3], data[3], data[2], data[2],
-            ),
             array([
-                0, 1, -1, 2, -2, n[1] - 1, -n[1] + 1, n[1], n[1] - 2, -n[1] + 2,
-                -n[1], 2 * (n[1] - 1), 2 * (-n[1] + 1),
+                data[0], data[1], data[1], data[2], data[2], data[1], data[1],
+                data[3], data[3], data[3], data[3], data[2], data[2],
+            ]),
+            array([
+                0, 1, -1, 2, -2, n[1], -n[1], n[1] - 1, n[1] + 1, -n[1] + 1,
+                -n[1] - 1, 2 * n[1], 2 * -n[1],
             ]),
         ),
         shape=(m, m),
     )
 
 
-__all__ = ['second_difference_matrix', 'fourth_difference_matrix', 'laplacian_matrix']
+__all__ = [
+    'second_difference_matrix',
+    'fourth_difference_matrix',
+    'laplacian_matrix',
+    'biharmonic_matrix',
+]
