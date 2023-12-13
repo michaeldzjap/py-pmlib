@@ -17,6 +17,11 @@ def second_difference_matrix(n: int = 2) -> spmatrix:
     -------
     spmatrix
         The second difference matrix.
+
+    Raises
+    ------
+    ValueError
+        If `n` is smaller than 2.
     """
     if n < 2:
         raise ValueError('n must be equal or greater than 2')
@@ -37,6 +42,11 @@ def fourth_difference_matrix(n: int = 3) -> spmatrix:
     -------
     spmatrix
         The fourth difference matrix.
+
+    Raises
+    ------
+    ValueError
+        If `n` is smaller than 3.
     """
     if n < 3:
         raise ValueError('n must be equal or greater than 3')
@@ -57,6 +67,11 @@ def laplacian_matrix(n: tuple[int, int] = (2, 2)) -> spmatrix:
     -------
     spmatrix
         The laplacian matrix.
+
+    Raises
+    ------
+    ValueError
+        If `n[i]` is smaller than 2.
     """
     for i, ni in enumerate(n):
         if ni < 2:
@@ -80,7 +95,16 @@ def biharmonic_matrix(n: tuple[int, int] = (4, 4)) -> spmatrix:
     -------
     spmatrix
         The biharmonic matrix.
+
+    Raises
+    ------
+    ValueError
+        If `n[i]` is smaller than 6.
     """
+    for i, ni in enumerate(n):
+        if ni < 6:
+            raise ValueError(f'n[{i}] must be equal or greater than 6')
+
     m = prod(n)
 
     return diags(

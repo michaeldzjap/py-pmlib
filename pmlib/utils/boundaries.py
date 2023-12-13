@@ -1,14 +1,15 @@
 """Boundary condition utilities."""
 
 from enum import Enum, auto
-from scipy.sparse import spmatrix  # type: ignore
+
+from scipy.sparse import spmatrix
 
 
 class BoundaryCondition(Enum):
     """All possible boundary conditions."""
-    C = auto()  # Clamped
-    S = auto()  # Simply supported
-    F = auto()  # Free
+    CLAMPED = auto()
+    SIMPLY_SUPPORTED = auto()
+    FREE = auto()
 
 
 def apply_boundary_condition(matrix: spmatrix, conditions: tuple[BoundaryCondition]) -> spmatrix:
@@ -28,3 +29,8 @@ def apply_boundary_condition(matrix: spmatrix, conditions: tuple[BoundaryConditi
         The original matrix with the boundary condition applied.
     """
     pass
+
+
+__all__ = [
+    'BoundaryCondition',
+]
