@@ -1,26 +1,25 @@
 """Resonator definitions."""
 
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import Enum, auto
 from math import sqrt
-from typing import NamedTuple
 
 from scipy.sparse import dok_matrix, identity, spmatrix
 
-from .utils.boundaries import BoundaryCondition
 from .utils.matrices import fourth_difference_matrix, second_difference_matrix
+
+
+class BoundaryCondition(Enum):
+    """All possible boundary conditions."""
+    CLAMPED = auto()
+    SIMPLY_SUPPORTED = auto()
+    FREE = auto()
 
 
 class Endpoint(Enum):
     """All possible endpoints."""
-    LEFT = 'left'
-    RIGHT = 'right'
-
-
-class BoundaryConditions(NamedTuple):
-    """Boundary conditions named tuple."""
-    left: BoundaryCondition
-    right: BoundaryCondition
+    LEFT = auto()
+    RIGHT = auto()
 
 
 class Resonator(ABC):
@@ -79,13 +78,11 @@ class Resonator(ABC):
         self._loss = value
 
     @property
-    @abstractmethod
     def b(self) -> spmatrix:
         """Get the update matrix acting on u^n."""
         return self._b
 
     @property
-    @abstractmethod
     def c(self) -> spmatrix:
         """Get the update matrix acting on u^(n - 1)."""
         return self._c
@@ -135,7 +132,10 @@ class LinearResonator1D(Resonator):
         The spatially scaled stiffness coefficient.
     loss : tuple, default (0, 0)
         The frequency independent and dependent damping constants.
-    boundary_conditions : NamedTuple
+    boundary_conditions : dict, default {
+                                            Endpoint.LEFT: BoundaryCondition.SIMPLY_SUPPORTED,
+                                            Endpoint.RIGHT: BoundaryCondition.SIMPLY_SUPPORTED,
+                                        }
         The left and right boundary conditions.
     """
     def __init__(
@@ -143,12 +143,15 @@ class LinearResonator1D(Resonator):
         gamma: float = 200,
         kappa: float = 1,
         loss: tuple[float, float] = (0, 0),
-        boundary_conditions: BoundaryConditions = BoundaryConditions(
-            left=BoundaryCondition.SIMPLY_SUPPORTED,
-            right=BoundaryCondition.SIMPLY_SUPPORTED,
-        ),
+        boundary_conditions: dict[Endpoint, BoundaryCondition] | None = None,
     ):
         super().__init__(gamma, kappa, loss)
+
+        if boundary_conditions is None:
+            boundary_conditions = {
+                Endpoint.LEFT: BoundaryCondition.SIMPLY_SUPPORTED,
+                Endpoint.RIGHT: BoundaryCondition.SIMPLY_SUPPORTED,
+            }
 
         self._boundary_conditions = boundary_conditions
 
@@ -212,7 +215,7 @@ class LinearResonator1D(Resonator):
 
         c = (1. - b1 * k) * i + zeta * dxx
 
-        if any(c == BoundaryCondition.FREE for c in conditions):
+        if any(c == BoundaryCondition.FREE for c in conditions.values()):
             c = self.__add_free_matrix(c, n, (alpha, mu2))
 
         return c
@@ -223,11 +226,11 @@ class LinearResonator1D(Resonator):
 
         m = dok_matrix((n + 1, n + 1))
 
-        if conditions.left == BoundaryCondition.FREE:
+        if conditions[Endpoint.LEFT] == BoundaryCondition.FREE:
             m[0, 0] = -alpha
             m[0, 1] = alpha
 
-        if conditions.right == BoundaryCondition.FREE:
+        if conditions[Endpoint.RIGHT] == BoundaryCondition.FREE:
             m[-1, -1] = -alpha
             m[-1, -2] = alpha
 
@@ -241,15 +244,13 @@ class LinearResonator1D(Resonator):
         i, dxx, dxxxx = [m.todok() for m in matrices]
 
         for endpoint in Endpoint:
-            condition = getattr(conditions, endpoint.value)
-
-            if condition == BoundaryCondition.CLAMPED:
+            if conditions[endpoint] == BoundaryCondition.CLAMPED:
                 self.__apply_clamped_condition((i, dxx, dxxxx), endpoint)
 
-            if condition == BoundaryCondition.SIMPLY_SUPPORTED:
+            if conditions[endpoint] == BoundaryCondition.SIMPLY_SUPPORTED:
                 self.__apply_simply_supported_condition((i, dxx, dxxxx), endpoint)
 
-            if condition == BoundaryCondition.FREE:
+            if conditions[endpoint] == BoundaryCondition.FREE:
                 self.__apply_free_condition((i, dxx, dxxxx), endpoint, beta)
 
         return tuple(m.todia() for m in (i, dxx, dxxxx))
@@ -312,4 +313,4 @@ class LinearResonator1D(Resonator):
             dxxxx[-2, -2] = 5
 
 
-__all__ = ['LinearResonator1D']
+__all__ = ['BoundaryCondition', 'Endpoint', 'LinearResonator1D']
