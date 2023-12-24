@@ -38,15 +38,48 @@ dependencies = [
 
 [tool.hatch.envs.test]
 dependencies = [
-    "coverage[toml]",
     "pytest",
     "pytest-cov",
+]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=pmlib tests/"
+run-dev = "test --no-cov"
+coverage-report = "coverage report -m"
+coverage-html = "coverage html"
+
+[tool.hatch.envs.plot]
+dependencies = [
+    "matplotlib"
 ]
 
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
 ]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+
+[tool.coverage.report]
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+]
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "scipy.sparse"

@@ -99,11 +99,11 @@ def biharmonic_matrix(n: tuple[int, int] = (4, 4)) -> spmatrix:
     Raises
     ------
     ValueError
-        If `n[i]` is smaller than 6.
+        If `n[i]` is smaller than 4.
     """
     for i, ni in enumerate(n):
-        if ni < 6:
-            raise ValueError(f'n[{i}] must be equal or greater than 6')
+        if ni < 4:
+            raise ValueError(f'n[{i}] must be equal or greater than 4')
 
     m = prod(n)
 
