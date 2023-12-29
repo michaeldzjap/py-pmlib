@@ -3,8 +3,9 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from math import sqrt
+from typing import Self
 
-from scipy.sparse import dok_matrix, identity, spmatrix
+from scipy.sparse import csr_matrix, dok_matrix, identity, spmatrix
 
 from .utils.matrices import fourth_difference_matrix, second_difference_matrix
 
@@ -37,8 +38,8 @@ class Resonator(ABC):
         self.gamma = gamma
         self.kappa = kappa
         self.loss = loss
-        self._b = None
-        self._c = None
+        self._b = csr_matrix((0, 0))
+        self._c = csr_matrix((0, 0))
 
     @property
     def gamma(self) -> float:
@@ -47,8 +48,8 @@ class Resonator(ABC):
 
     @gamma.setter
     def gamma(self, value: float):
-        if value < 0 or value > self._nyquist:
-            raise ValueError(f'gamma out of the range 0 - {self._nyquist}')
+        if not 0 <= value <= self._nyquist:
+            raise ValueError(f'gamma must be between 0 and {self._nyquist}')
 
         self._gamma: float = value
 
@@ -102,9 +103,9 @@ class Resonator(ABC):
         ValueError
             If `value` is smaller than the minimum allowed or greater than the maximum allowed sample rate.
         """
-        if value < cls.MIN_SAMPLE_RATE or value > cls.MAX_SAMPLE_RATE:
+        if not cls.MIN_SAMPLE_RATE <= value <= cls.MAX_SAMPLE_RATE:
             raise ValueError(
-                f'sample rate out of the range {cls.MIN_SAMPLE_RATE} - {cls.MAX_SAMPLE_RATE}'
+                f'sample rate must be between {cls.MIN_SAMPLE_RATE} and {cls.MAX_SAMPLE_RATE}'
             )
 
         cls._sample_rate = value
@@ -112,7 +113,7 @@ class Resonator(ABC):
         cls._time_step = 1 / value
 
     @abstractmethod
-    def build(self) -> None:
+    def build(self) -> Self:
         """Build the resonator model."""
 
     @abstractmethod
@@ -154,11 +155,22 @@ class LinearResonator1D(Resonator):
             }
 
         self._boundary_conditions = boundary_conditions
+        self.__h, self.__n = self._compute_grid_step()
 
-    def build(self) -> None:
-        h, n = self._compute_grid_step()
+    @property
+    def h(self) -> float:
+        """Get the grid step."""
+        return self.__h
 
-        self._b, self._c = self.__build_update_matrices(h, n)
+    @property
+    def n(self) -> int:
+        """Get the grid size."""
+        return self.__n
+
+    def build(self) -> Self:
+        self._b, self._c = self.__build_update_matrices(self.__h, self.__n)
+
+        return self
 
     def _compute_grid_step(self) -> tuple[float, int]:
         k = self._time_step
