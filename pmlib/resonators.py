@@ -197,16 +197,16 @@ class LinearResonator1D(Resonator):
         den = 1 + b1 * k
 
         alpha = 2 * b2 * (h / kappa) ** 2 / k
-        beta = 1 + (gamma * h / kappa) ** 2 + alpha
+        beta = 2 + (gamma * h / kappa) ** 2 + alpha
 
         i = identity(n + 1)
         dxx = second_difference_matrix(n + 1)
         dxxxx = fourth_difference_matrix(n + 1)
 
-        i, dxx, dxxxx = self.__apply_boundary_conditions((i, dxx, dxxxx), beta)
+        i, dxx, dxxxx = self.__apply_boundary_conditions((i, dxx, dxxxx), 2 * beta)
 
         b = self.__create_b_matrix((i, dxx, dxxxx), (lambda2, zeta, mu2)) / den
-        c = self.__create_c_matrix((i, dxx), (b1, k, zeta, alpha, mu2), n) / -den
+        c = self.__create_c_matrix((i, dxx), (b1, k, zeta, 2 * alpha, mu2), n) / -den
 
         return b, c
 
@@ -223,33 +223,33 @@ class LinearResonator1D(Resonator):
     ) -> spmatrix:
         conditions = self._boundary_conditions
         i, dxx = matrices
-        b1, k, zeta, alpha, mu2 = coefficients
+        b1, k, zeta, alpha2, mu2 = coefficients
 
         c = (1. - b1 * k) * i + zeta * dxx
 
         if any(c == BoundaryCondition.FREE for c in conditions.values()):
-            c = self.__add_free_matrix(c, n, (alpha, mu2))
+            c = self.__add_free_matrix(c, n, (alpha2, mu2))
 
         return c
 
     def __add_free_matrix(self, c: spmatrix, n: int, coefficients: tuple[float, float]):
         conditions = self._boundary_conditions
-        alpha, mu2 = coefficients
+        alpha2, mu2 = coefficients
 
         m = dok_matrix((n + 1, n + 1))
 
         if conditions[Endpoint.LEFT] == BoundaryCondition.FREE:
-            m[0, 0] = -alpha
-            m[0, 1] = alpha
+            m[0, 0] = -alpha2
+            m[0, 1] = alpha2
 
         if conditions[Endpoint.RIGHT] == BoundaryCondition.FREE:
-            m[-1, -1] = -alpha
-            m[-1, -2] = alpha
+            m[-1, -1] = -alpha2
+            m[-1, -2] = alpha2
 
         return c + mu2 * m.todia()
 
     def __apply_boundary_conditions(
-        self, matrices: tuple[spmatrix, spmatrix, spmatrix], beta: float,
+        self, matrices: tuple[spmatrix, spmatrix, spmatrix], beta2: float,
     ) -> tuple[spmatrix, ...]:
         conditions = self._boundary_conditions
 
@@ -263,7 +263,7 @@ class LinearResonator1D(Resonator):
                 self.__apply_simply_supported_condition((i, dxx, dxxxx), endpoint)
 
             if conditions[endpoint] == BoundaryCondition.FREE:
-                self.__apply_free_condition((i, dxx, dxxxx), endpoint, beta)
+                self.__apply_free_condition((i, dxx, dxxxx), endpoint, beta2)
 
         return tuple(m.todia() for m in (i, dxx, dxxxx))
 
@@ -278,6 +278,7 @@ class LinearResonator1D(Resonator):
 
             dxxxx[0, 0:3] = 0
             dxxxx[1, 0] = 0
+            dxxxx[1, 1] = 7
             dxxxx[2, 0] = 0
 
         if endpoint == Endpoint.RIGHT:
@@ -288,6 +289,7 @@ class LinearResonator1D(Resonator):
 
             dxxxx[-1, -3:] = 0
             dxxxx[-2, -1] = 0
+            dxxxx[-2, -2] = 7
             dxxxx[-3, -1] = 0
 
     def __apply_simply_supported_condition(
@@ -304,23 +306,25 @@ class LinearResonator1D(Resonator):
             dxxxx[-2, -2] = 5
 
     def __apply_free_condition(
-        self, matrices: tuple[spmatrix, spmatrix, spmatrix], endpoint: Endpoint, beta: float,
+        self, matrices: tuple[spmatrix, spmatrix, spmatrix], endpoint: Endpoint, beta2: float,
     ) -> None:
         _, dxx, dxxxx = matrices
 
         if endpoint == Endpoint.LEFT:
             dxx[0, 0:2] = 0
 
-            dxxxx[0, 0] = beta
-            dxxxx[0, 1] = -1 - beta
+            dxxxx[0, 0] = beta2 - 2
+            dxxxx[0, 1] = -beta2
+            dxxxx[0, 2] = 2
             dxxxx[1, 0] = -2
             dxxxx[1, 1] = 5
 
         if endpoint == Endpoint.RIGHT:
             dxx[-1, -2:] = 0
 
-            dxxxx[-1, -1] = beta
-            dxxxx[-1, -2] = -1 - beta
+            dxxxx[-1, -1] = beta2 - 2
+            dxxxx[-1, -2] = -beta2
+            dxxxx[-1, -3] = 2
             dxxxx[-2, -1] = -2
             dxxxx[-2, -2] = 5
 
