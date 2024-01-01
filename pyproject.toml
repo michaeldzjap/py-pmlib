@@ -32,9 +32,19 @@ path = ".hatch"
 detached = true
 dependencies = [
     "flake8>=6.1.0",
+    "matplotlib",
     "mypy>=1.7.1",
+    "numpy~=1.26.0",
     "pylint>=3.0.2",
+    "pytest",
+    "pytest-cov",
+    "scipy~=1.11.4",
 ]
+
+[tool.hatch.envs.lint.scripts]
+run-flake8 = "flake8 ."
+run-pylint = "pylint **/*.py"
+run-mypy = "mypy **/*.py"
 
 [tool.hatch.envs.test]
 dependencies = [

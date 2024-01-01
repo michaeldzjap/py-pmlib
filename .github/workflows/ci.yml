@@ -1,0 +1,59 @@
+name: pmlib CI
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+jobs:
+  lint:
+    name: Lint - Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Set up pip cache
+        if: runner.os == 'Linux'
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Install Hatch
+        run: pipx install hatch
+      - name: Lint with flake8
+        run: hatch run +py=${{ matrix.python-version }} lint:run-flake8
+      - name: Lint with pylint
+        run: hatch run +py=${{ matrix.python-version }} lint:run-pylint
+      - name: Lint with mypy
+        run: hatch run +py=${{ matrix.python-version }} lint:run-mypy
+  test:
+    name: Test - Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Set up pip cache
+        if: runner.os == 'Linux'
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Install Hatch
+        run: pipx install hatch
+      - name: Test codebase
+        run: hatch run +py=${{ matrix.python-version }} test:run

@@ -2,7 +2,7 @@
 
 from math import log, pi, sqrt
 
-import matplotlib.animation as animation
+import matplotlib.animation as ani
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -75,6 +75,6 @@ def update(_: int):
     return string
 
 
-ani = animation.FuncAnimation(fig=fig, func=update, frames=40, interval=30)
+animation = ani.FuncAnimation(fig=fig, func=update, frames=40, interval=30)
 
 plt.show()

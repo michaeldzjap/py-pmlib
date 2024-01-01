@@ -1,2 +1,3 @@
 [flake8]
 max-line-length = 120
+exclude = .git,.hatch,.mypy_cache,.pytest_cache,htmlcov,__pycache__,
